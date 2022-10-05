@@ -21,6 +21,7 @@ const bakeryProducts = [
   },
   {
     name: "toast",
+
     unitPrice: 1.0,
     calories: 50,
   },
@@ -86,38 +87,121 @@ const promotions = [
 ];
 
 const calculateBasket = (products) => {
-  // JavaScript exercise
-  // This function mysteriously got wiped from our online ordering system, and there's no history of it in source control...
-  // The function takes an array of product names (see the calls below).
-  // It needs to calculate the order total both in terms of price and of calories and return them in an object:
-  // {
-  //     totalPrice: ???,
-  //     totalCalories: ???
-  // }
-  // The bakeryProducts and cafeProducts arrays contain all the details you'll need about the business' products (pretend the data is from a database or REST API).
+  let price = 0;
+  let calorie = 0;
+  let item;
+  let bakeryIndexArr = [];
+  let cafeIndexArr = [];
+  let isPromotion = false;
+  let promote;
+  let promotionPrice;
+  let totalPromotionPrice = 0;
+
+  // EXTENSION TASK:
+
+  // use duplicatedValue to get correct promotions for each order
+  function getPromotionPrice(duplicatedValue) {
+    if (duplicatedValue === 0) {
+      promote = promotions[0];
+      promotionPrice = promote.promotionPrice;
+    } else if (duplicatedValue === 1) {
+      promote = promotions[1];
+      promotionPrice = promote.promotionPrice;
+    } else if (duplicatedValue === 2) {
+      promote = promotions[2];
+      promotionPrice = promote.promotionPrice;
+    }
+    // if the length of the order is not 3, calculate total promotion price normally, else
+    // make total promotion price equal to most recent promotion price.
+
+    products.length !== 3
+      ? (totalPromotionPrice += promotionPrice)
+      : (totalPromotionPrice = promotionPrice);
+  }
+
+  function checkForPromotion(products) {
+    // map through the promotions, check if the order(products) include any of the items in each promotion,
+    // will return true if they do
+    const includesBakeryItems = promotions.map((promotion) => {
+      return promotion.applicableFromBakery.some((item) =>
+        products.includes(item)
+      );
+    });
+    const includesCafeItems = promotions.map((promotion) => {
+      return promotion.applicableFromCafe.some((item) =>
+        products.includes(item)
+      );
+    });
+    // for each item of the bakery and cafe items, if they are true, push their index to an array
+    includesBakeryItems.forEach((item, index) => {
+      if (item) {
+        bakeryIndexArr.push(index);
+      }
+    });
+    includesCafeItems.forEach((item, index) => {
+      if (item) {
+        cafeIndexArr.push(index);
+      }
+    });
+
+    // merge both arrays with indexes of true items. create a new set of the indexes and filter
+    // out any duplicate indexes to signify when order items are (in both applicable arrays),
+    // send those indexes to
+    // getPromotionPrice function and set promotion to true when there is a promotion
+    let promotionArr = bakeryIndexArr.concat(cafeIndexArr);
+    const set = new Set(promotionArr);
+    promotionArr.filter((item) => {
+      if (set.has(item)) {
+        set.delete(item);
+      } else {
+        getPromotionPrice(item);
+        isPromotion = true;
+      }
+    });
+  }
+
+  // MAIN TASK :
   //
-  // For extra points, check if any promotions (from the promotions array) can be applied, based on the products that are passed in, and reflect any change in total price.
-  // Promotions should override the price of a pair of products,
-  // where one of the products is found in the "applicableFromBakery" array and the other is found in the "applicableFromCafe" array.
-  // Example:
-  // products = ["toast", "tea", "blueberry muffin"]
-  // totalPrice would normally be 1.0 (toast) + 1.0 (tea) + 2.5 (muffin) = 4.5
-  // With the "breakfast to go" promotion, we can override the cost of the tea and toast with 1.8:
-  // totalPrice becomes 1.8 (toast + tea promotion) + 2.5 (muffin) = 4.3
-  //
-  // A basic implementation could search for valid pairs of products and apply promotions in the order that it finds them
-  // A more advanced version could calculate the ideal promotions to apply, resulting in the lowest possible total
-  //
-  // Do as little or as much as you feel like of this exercise, the point isn't to pass/fail your JavaScript skills,
-  // but to see how you go about using the language and how you approach solving a given problem
+  //  create one array of products from existing bakery products and cafe products
+  // if there are products, call check for promotion function
+  const allProducts = [...bakeryProducts, ...cafeProducts];
+  products && checkForPromotion(products);
+  // loop through the products recieved and match the product with the name in the new allProducts
+  // array to find correct data, then step through the data and store in variables calorie/price
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i];
+    item = allProducts.find((data) => data.name === product);
+    calorie += item.calories;
+    price += item.unitPrice;
+  }
+  // store product data inside total object and return object
+  const total = {
+    order: products,
+    totalPrice: price,
+    totalCalories: calorie,
+    promotion: isPromotion,
+    promotionTotal: totalPromotionPrice,
+    // I was unable to succesfully apply the promotional price
+    // the first value in priceWithPromotion is not accurate to what the price should be after promotion is applied
+    // it is a representation of the ternary I would use to get the priceWithPromotion value
+    // i.e. isPromotion? price = totalPromotionPrice + remaining items that aren't in promotion : price
+    // WHAT I WOULD DO NEXT:
+    // check which items are in the promotion and which are not
+    //if item is in promotion remove it from array of products, get price of remaining items, then add correct
+    // promotional amounts
+    priceWithPromotion: isPromotion
+      ? (price = totalPromotionPrice + item.unitPrice)
+      : price,
+  };
+  return total;
 };
 
 // Exercise output (don't change anything of these but feel free to add more tests)
-console.log(calculateBasket(["brownie", "iced coffee"]));
+console.log(calculateBasket(["brownie", "iced coffee"])); //true
 
-console.log(calculateBasket(["blueberry muffin", "carrot cake"]));
+console.log(calculateBasket(["blueberry muffin", "carrot cake"])); //false
 
-console.log(calculateBasket(["savoury muffin", "coffee", "hot chocolate"]));
+console.log(calculateBasket(["savoury muffin", "coffee", "hot chocolate"])); //true
 
 console.log(
   calculateBasket([
@@ -128,8 +212,8 @@ console.log(
     "coffee",
     "iced coffee",
   ])
-);
+); //true
 
 console.log(
   calculateBasket(["sponge", "tea", "savoury muffin", "coffee", "sponge"])
-);
+); //true

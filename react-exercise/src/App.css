@@ -1,2 +1,33 @@
-.container {
+/* general */
+
+* {
+  box-sizing: border-box;
+}
+html {
+  font-size: 16px;
+}
+body {
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #e0eafc, #cfdef3);
+}
+/*  */
+.appHeader {
+  text-align: center;
+  font-size: 2.5rem;
+  margin: 1em 0 0.5em;
+}
+
+/* product tile container */
+.appContainer {
+  margin: 1em auto;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+/* media queries */
+@media (min-width: 500px) {
+  html {
+    font-size: 22px;
+  }
 }
